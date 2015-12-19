@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using System.Web.UI;
 
@@ -80,15 +81,18 @@ namespace WebFormsTest
           }
         }
 
-        if (!eventExists)
+        // If the event exists, generate the event addHandler code
+        if (eventExists)
         {
           // Createa a new delegate proxy
           var functionPtr = eventHandler.Value.MethodHandle.GetFunctionPointer();
+          var newHandler = new DelegateProxy(UnderTest, functionPtr).Handler;
+          UnderTest.Events.AddHandler(eventHandler.Key, newHandler);
 
           /// NEED TO WALK REFLECTION TO GET THE EVENTHANDLER AND EMIT THE event += EventHandler code
           /// http://referencesource.microsoft.com/#System.Web/Util/ArglessEventHandlerProxy.cs,ff9a890000de7671
           /// http://referencesource.microsoft.com/#System.Web/UI/TemplateControl.cs,be9a232ff171c33b
-          var handler = (new CalliEventHandlerDelegateProxy())
+          //var handler = (new CalliEventHandlerDelegateProxy())
         }
 
       }
@@ -129,6 +133,46 @@ namespace WebFormsTest
 
     }
 
+    internal delegate void ParameterfulDelegate(object sender, EventArgs args);
+
+    private class DelegateProxy
+    {
+
+      private TestablePage _Target;
+      private IntPtr _FunctionPtr;
+
+      public DelegateProxy(TestablePage sut, IntPtr functionPtr)
+      {
+        _Target = sut;
+        _FunctionPtr = functionPtr;
+      }
+
+      internal void Callback(object sender, EventArgs e)
+      {
+        var del = CreateDelegate(_Target, _FunctionPtr);
+        del(sender, e);
+      }
+
+      private ParameterfulDelegate CreateDelegate(TestablePage _Target, IntPtr _FunctionPtr)
+      {
+
+        var ctor = typeof(ParameterfulDelegate).GetConstructor(new Type[] { typeof(object), typeof(IntPtr) });
+        var method = new DynamicMethod(
+            name: "TestDelegate_" + 
+        );
+
+
+
+      }
+
+      public EventHandler Handler
+      {
+        get
+        {
+          return new EventHandler(Callback);
+        }
+      }
+    }
   }
 
 }
