@@ -100,12 +100,16 @@ namespace WebFormsTest.Test
     {
 
       // Arrange
+      var formData = new NameValueCollection();
+      formData.Add("test", "item");
 
       // Act
       var sut = new _Default();
-      sut.MockPostData(null);
+      sut.MockPostData(formData);
+      sut.FireEvent(TestablePage.WebFormEvent.Load, null);
 
       // Assert
+      response.Verify(r => r.Write("item"), "Did not write the Form contents");
 
     }
 
