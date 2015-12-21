@@ -44,7 +44,7 @@ namespace WebFormsTest
 
       if (IsTestingEnabled)
       {
-        this.AutoEventWireup();
+        // Redirect to AutoEventHandler to inspect and add event handlers  appropriately
       }
 
     }
@@ -118,40 +118,6 @@ namespace WebFormsTest
 
     }
 
-    /// <summary>
-    /// Check if there are event handlers configured in the page for the standard events and connect them
-    /// </summary>
-    private void AutoEventWireup()
-    {
-
-      RegisterEventHandlerIfMissing("Load");
-
-    }
-
-    private void RegisterEventHandlerIfMissing(string name)
-    {
-
-      /// Attempt at doing this with Reflection...  running into a security error
-
-      var methodName = $"Page_{name}";
-      if (!IsMethodPresent(methodName)) return;
-
-      // Walk the internal structure of the Event to get the Event Delegate
-      var thisEvent = GetType().GetEvent(name, AllBindings);
-      Type tEvent = thisEvent.EventHandlerType;
-
-      var eventHandlerList = thisEvent.DeclaringType.GetField("Events", AllBindings);
-
-      MethodInfo mi = GetType().GetMethod(methodName, AllBindings);
-
-      /**
-            Delegate d = Delegate.CreateDelegate(tEvent, mi);
-
-            // Remove it first, then re-add it
-            thisEvent.RemoveEventHandler(this, d);
-            thisEvent.AddEventHandler(this, d);
-        **/
-    }
 
     /// <summary>
     /// Is the submitted method name implemented?
